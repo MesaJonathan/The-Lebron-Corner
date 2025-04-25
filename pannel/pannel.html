@@ -6,9 +6,23 @@
     <h1>Lebron Corner</h1>
 
     <label class="switch">
-        <input type="checkbox">
+        <input id="toggleSwitch" type="checkbox">
         <span class="slider round"></span>
     </label>
+
+    <div id="youtubePlayerContainer" style="display: none; margin-top: 20px;">
+      <iframe 
+        id="youtubePlayer" 
+        width="320" 
+        height="180" 
+        src="https://www.youtube.com/embed/videoseries?list=PLlVlyGVtvuVkIcURexb_W_CZU9T_Xlr6u" 
+        frameborder="0" 
+        allow="autoplay; encrypted-media" 
+        allowfullscreen>
+      </iframe>
+    </div>
+
+    <script src="../player/player.js"></script>
 
   </body>
 </html>

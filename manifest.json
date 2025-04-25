@@ -1,10 +1,13 @@
 {
   "name": "Lebron Corner",
-  "description": "Base Level Extension",
+  "description": "Toggle the switch in the pannel to actiavte Lebron James highlights in the corner.",
   "version": "1.0",
   "manifest_version": 3,
   "action": {
     "default_popup": "pannel/pannel.html",
     "default_icon": "default_icon.png"
-  }
+  },
+  "permissions": [
+    "storage"
+  ]
 }
