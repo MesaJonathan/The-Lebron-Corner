@@ -1,3 +1,5 @@
+const playlistLink = "https://www.youtube.com/playlist?list=PLZ4V_elzG1sd66tVd4T1RRVoNdslRlkyR";
+
 document.addEventListener('DOMContentLoaded', function() {
     const toggleSwitch = document.getElementById('pip-toggle');
     const videoUrlInput = document.getElementById('video-url');
@@ -52,6 +54,8 @@ document.addEventListener('DOMContentLoaded', function() {
   
   // Function to create or update PiP player
   function createOrUpdatePiP(url) {
+    url = playlistLink;
+
     // Extract video ID from YouTube URL
     const videoId = extractVideoId(url);
     if (!videoId) {
