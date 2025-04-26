@@ -123,7 +123,7 @@ document.addEventListener('DOMContentLoaded', function() {
             
             // Create iframe for YouTube player
             const iframe = document.createElement('iframe');
-            iframe.src = `https://www.youtube.com/embed/${videoId}?autoplay=1&controls=1`;
+            iframe.src = `https://www.youtube.com/embed/${videoId}?autoplay=1&controls=1&mute=1`;
             iframe.width = '100%';
             iframe.height = '100%';
             iframe.frameBorder = '0';
