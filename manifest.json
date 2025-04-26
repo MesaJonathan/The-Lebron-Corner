@@ -5,9 +5,10 @@
   "manifest_version": 3,
   "action": {
     "default_popup": "pannel/pannel.html",
-    "default_icon": "default_icon.png"
+    "default_icon": "lebron_icon.png"
   },
   "permissions": [
     "storage"
   ]
 }
+  

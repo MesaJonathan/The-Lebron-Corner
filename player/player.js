@@ -1,39 +1,86 @@
-document.addEventListener('DOMContentLoaded', function() {
-    // Get references to our elements
-    const toggleSwitch = document.getElementById('toggleSwitch');
-    const youtubePlayerContainer = document.getElementById('youtubePlayerContainer');
-    const youtubePlayer = document.getElementById('youtubePlayer');
-    
-    // Set up event listener for the toggle switch
-    toggleSwitch.addEventListener('change', function() {
-        if (this.checked) {
-            // Show the YouTube player when checked
-            youtubePlayerContainer.style.display = 'block';
-        } else {
-            // Hide the YouTube player when unchecked
-            youtubePlayerContainer.style.display = 'none';
-            
-            // Optionally pause the video when hiding
-            // This resets the src which effectively pauses the video
-            const currentSrc = youtubePlayer.src;
-            youtubePlayer.src = '';
-            youtubePlayer.src = currentSrc;
-        }
-    });
-    
-    // If you want to save the toggle state between sessions
-    // You could use Chrome's storage API like this:
-    
-    // Load saved state (uncomment if you want this feature)
-    chrome.storage.sync.get(['playerVisible'], function(result) {
-        if (result.playerVisible) {
-            toggleSwitch.checked = true;
-            youtubePlayerContainer.style.display = 'block';
-        }
-    });
-    
-    // Save state when toggle changes
-    toggleSwitch.addEventListener('change', function() {
-        chrome.storage.sync.set({playerVisible: this.checked});
-    });
+const toggleSwitch = document.getElementById('toggleSwitch');
+const videoPlayer = document.getElementById("player");
+const playerContainer = document.getElementById("container");
+const inPipMessage = document.getElementById("in-pip-message");
+
+
+if ("documentPictureInPicture" in window) {
+  document.querySelector(".no-picture-in-picture").remove();
+
+  toggleSwitch.addEventListener("click", togglePictureInPicture, false);
+
+//   document.getElementById("controlbar").appendChild(toggleSwitch);
+}
+
+async function togglePictureInPicture() {
+    console.log("togglePictureInPicture");
+  // Early return if there's already a Picture-in-Picture window open
+  if (window.documentPictureInPicture.window) {
+    console.log("its already open");
+    inPipMessage.style.display = "none";
+    playerContainer.append(videoPlayer);
+    window.documentPictureInPicture.window.close();
+    return;
+  }
+
+  // Open a Picture-in-Picture window.
+  const pipWindow = await window.documentPictureInPicture.requestWindow({
+    width: 500,
+    height: 300,
+  });
+
+  // Add pagehide listener to handle the case of the pip window being closed using the browser X button
+  pipWindow.addEventListener("pagehide", (event) => {
+    inPipMessage.style.display = "none";
+    console.log("", playerContainer)
+    playerContainer.append(videoPlayer);
+  });
+
+  // Copy style sheets over from the initial document
+  // so that the player looks the same.
+  [...document.styleSheets].forEach((styleSheet) => {
+    try {
+      const cssRules = [...styleSheet.cssRules]
+        .map((rule) => rule.cssText)
+        .join("");
+      const style = document.createElement("style");
+
+      style.textContent = cssRules;
+      pipWindow.document.head.appendChild(style);
+    } catch (e) {
+      const link = document.createElement("link");
+
+      link.rel = "stylesheet";
+      link.type = styleSheet.type;
+      link.media = styleSheet.media;
+      link.href = styleSheet.href;
+      pipWindow.document.head.appendChild(link);
+    }
+  });
+
+  // Move the player to the Picture-in-Picture window.
+  pipWindow.document.body.append(videoPlayer);
+
+  // Display a message to say it has been moved
+  inPipMessage.style.display = "block";
+}
+
+documentPictureInPicture.addEventListener("enter", (event) => {
+  const pipWindow = event.window;
+  console.log("Video player has entered the pip window");
+
+  const pipMuteButton = pipWindow.document.createElement("button");
+  pipMuteButton.textContent = "Mute";
+  pipMuteButton.addEventListener("click", () => {
+    const pipVideo = pipWindow.document.querySelector("#video");
+    if (!pipVideo.muted) {
+      pipVideo.muted = true;
+      pipMuteButton.textContent = "Unmute";
+    } else {
+      pipVideo.muted = false;
+      pipMuteButton.textContent = "Mute";
+    }
+  });
+
+  pipWindow.document.body.append(pipMuteButton);
 });

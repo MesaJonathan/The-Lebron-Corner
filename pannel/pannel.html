@@ -1,5 +1,6 @@
 <html>
   <head>
+    <script src="../player/player.js" async></script>
     <link rel="stylesheet" href="pannel.css">
   </head>
   <body>
@@ -10,12 +11,19 @@
         <span class="slider round"></span>
     </label>
 
-    <div id="youtubePlayerContainer" style="display: none; margin-top: 20px;">
-      <iframe 
-        width="560" height="315" src="https://www.youtube.com/embed/videoseries?si=DBaCPx3WgMizgb2Z&amp;list=PLp55PPHQVMkk_6vfXe49m-NFQfx3tO10j" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
-    </div>
+    <div id="container">
+      <p id="in-pip-message">Video player is currently in the separate Picture-in-Picture window.</p>
+      <div id="player">
+        <video src="https://www.youtube.com/embed/videoseries?si=DBaCPx3WgMizgb2Z&amp;list=PLp55PPHQVMkk_6vfXe49m-NFQfx3tO10j" id="video" controls width="320"></video>
 
-    <script src="../player/player.js"></script>
+        <div id="controlbar">
+          <p class="no-picture-in-picture">
+            Document Picture-in-Picture API not available
+          <p>
+        </div>
+        
+      </div>
+    </div>
 
   </body>
 </html>
