@@ -1,86 +1,177 @@
-const toggleSwitch = document.getElementById('toggleSwitch');
-const videoPlayer = document.getElementById("player");
-const playerContainer = document.getElementById("container");
-const inPipMessage = document.getElementById("in-pip-message");
-
-
-if ("documentPictureInPicture" in window) {
-  document.querySelector(".no-picture-in-picture").remove();
-
-  toggleSwitch.addEventListener("click", togglePictureInPicture, false);
-
-//   document.getElementById("controlbar").appendChild(toggleSwitch);
-}
-
-async function togglePictureInPicture() {
-    console.log("togglePictureInPicture");
-  // Early return if there's already a Picture-in-Picture window open
-  if (window.documentPictureInPicture.window) {
-    console.log("its already open");
-    inPipMessage.style.display = "none";
-    playerContainer.append(videoPlayer);
-    window.documentPictureInPicture.window.close();
-    return;
+document.addEventListener('DOMContentLoaded', function() {
+    const toggleSwitch = document.getElementById('pip-toggle');
+    const videoUrlInput = document.getElementById('video-url');
+    const saveButton = document.getElementById('save-button');
+    
+    // Load saved state
+    chrome.storage.local.get(['pipEnabled', 'videoUrl'], function(result) {
+      toggleSwitch.checked = result.pipEnabled || false;
+      videoUrlInput.value = result.videoUrl || '';
+      
+      // Apply initial state
+      if (toggleSwitch.checked && videoUrlInput.value) {
+        createOrUpdatePiP(videoUrlInput.value);
+      }
+    });
+  
+    // Save button handler
+    saveButton.addEventListener('click', function() {
+      const url = videoUrlInput.value;
+      const enabled = toggleSwitch.checked;
+      
+      // Save settings
+      chrome.storage.local.set({
+        pipEnabled: enabled,
+        videoUrl: url
+      });
+      
+      if (enabled && url) {
+        createOrUpdatePiP(url);
+      } else {
+        removePiP();
+      }
+    });
+    
+    // Toggle switch handler
+    toggleSwitch.addEventListener('change', function() {
+      const url = videoUrlInput.value;
+      const enabled = toggleSwitch.checked;
+      
+      // Save toggle state
+      chrome.storage.local.set({
+        pipEnabled: enabled
+      });
+      
+      if (enabled && url) {
+        createOrUpdatePiP(url);
+      } else {
+        removePiP();
+      }
+    });
+  });
+  
+  // Function to create or update PiP player
+  function createOrUpdatePiP(url) {
+    // Extract video ID from YouTube URL
+    const videoId = extractVideoId(url);
+    if (!videoId) {
+      console.error('Invalid YouTube URL');
+      return;
+    }
+    
+    // Inject the PiP player
+    chrome.tabs.query({active: true, currentWindow: true}, function(tabs) {
+      try {
+        chrome.scripting.executeScript({
+          target: {tabId: tabs[0].id},
+          func: function(videoId) {
+            // Define the removePiPPlayer function inside the injected code
+            function removePiPPlayer() {
+              const pipContainer = document.getElementById('yt-pip-container');
+              if (pipContainer) {
+                pipContainer.parentNode.removeChild(pipContainer);
+              }
+            }
+            
+            // First remove any existing player
+            removePiPPlayer();
+            
+            // Create PiP container
+            const pipContainer = document.createElement('div');
+            pipContainer.id = 'yt-pip-container';
+            pipContainer.style.position = 'fixed';
+            pipContainer.style.bottom = '20px';
+            pipContainer.style.right = '20px';
+            pipContainer.style.width = '320px';
+            pipContainer.style.height = '180px';
+            pipContainer.style.zIndex = '9999';
+            pipContainer.style.boxShadow = '0 0 10px rgba(0, 0, 0, 0.3)';
+            pipContainer.style.borderRadius = '8px';
+            pipContainer.style.overflow = 'hidden';
+            
+            // Create iframe for YouTube player
+            const iframe = document.createElement('iframe');
+            iframe.src = `https://www.youtube.com/embed/${videoId}?autoplay=1&controls=1`;
+            iframe.width = '100%';
+            iframe.height = '100%';
+            iframe.frameBorder = '0';
+            iframe.allow = 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture';
+            iframe.allowFullscreen = true;
+            
+            // Append iframe to container
+            pipContainer.appendChild(iframe);
+            
+            // Add container to body
+            document.body.appendChild(pipContainer);
+            
+            // Make the PiP player draggable
+            let pos1 = 0, pos2 = 0, pos3 = 0, pos4 = 0;
+            
+            pipContainer.onmousedown = function(e) {
+              e = e || window.event;
+              e.preventDefault();
+              // Get the mouse cursor position at startup
+              pos3 = e.clientX;
+              pos4 = e.clientY;
+              document.onmouseup = function() {
+                // Stop moving when mouse button is released
+                document.onmouseup = null;
+                document.onmousemove = null;
+              };
+              // Call a function whenever the cursor moves
+              document.onmousemove = function(e) {
+                e = e || window.event;
+                e.preventDefault();
+                // Calculate the new cursor position
+                pos1 = pos3 - e.clientX;
+                pos2 = pos4 - e.clientY;
+                pos3 = e.clientX;
+                pos4 = e.clientY;
+                // Set the element's new position
+                pipContainer.style.top = (pipContainer.offsetTop - pos2) + 'px';
+                pipContainer.style.left = (pipContainer.offsetLeft - pos1) + 'px';
+                // Reset bottom and right if top and left are set
+                pipContainer.style.bottom = 'auto';
+                pipContainer.style.right = 'auto';
+              };
+            };
+          },
+          args: [videoId]
+        }).catch(error => {
+          console.error('Error executing script:', error);
+          alert('Cannot inject player on this page. Please try on a regular webpage.');
+        });
+      } catch (error) {
+        console.error('Error setting up script execution:', error);
+        alert('Cannot inject player on this page. Please try on a regular webpage.');
+      }
+    });
   }
-
-  // Open a Picture-in-Picture window.
-  const pipWindow = await window.documentPictureInPicture.requestWindow({
-    width: 500,
-    height: 300,
-  });
-
-  // Add pagehide listener to handle the case of the pip window being closed using the browser X button
-  pipWindow.addEventListener("pagehide", (event) => {
-    inPipMessage.style.display = "none";
-    console.log("", playerContainer)
-    playerContainer.append(videoPlayer);
-  });
-
-  // Copy style sheets over from the initial document
-  // so that the player looks the same.
-  [...document.styleSheets].forEach((styleSheet) => {
-    try {
-      const cssRules = [...styleSheet.cssRules]
-        .map((rule) => rule.cssText)
-        .join("");
-      const style = document.createElement("style");
-
-      style.textContent = cssRules;
-      pipWindow.document.head.appendChild(style);
-    } catch (e) {
-      const link = document.createElement("link");
-
-      link.rel = "stylesheet";
-      link.type = styleSheet.type;
-      link.media = styleSheet.media;
-      link.href = styleSheet.href;
-      pipWindow.document.head.appendChild(link);
-    }
-  });
-
-  // Move the player to the Picture-in-Picture window.
-  pipWindow.document.body.append(videoPlayer);
-
-  // Display a message to say it has been moved
-  inPipMessage.style.display = "block";
-}
-
-documentPictureInPicture.addEventListener("enter", (event) => {
-  const pipWindow = event.window;
-  console.log("Video player has entered the pip window");
-
-  const pipMuteButton = pipWindow.document.createElement("button");
-  pipMuteButton.textContent = "Mute";
-  pipMuteButton.addEventListener("click", () => {
-    const pipVideo = pipWindow.document.querySelector("#video");
-    if (!pipVideo.muted) {
-      pipVideo.muted = true;
-      pipMuteButton.textContent = "Unmute";
-    } else {
-      pipVideo.muted = false;
-      pipMuteButton.textContent = "Mute";
-    }
-  });
-
-  pipWindow.document.body.append(pipMuteButton);
-});
+  
+  // Function to remove PiP player
+  function removePiP() {
+    chrome.tabs.query({active: true, currentWindow: true}, function(tabs) {
+      try {
+        chrome.scripting.executeScript({
+          target: {tabId: tabs[0].id},
+          func: function() {
+            const pipContainer = document.getElementById('yt-pip-container');
+            if (pipContainer) {
+              pipContainer.parentNode.removeChild(pipContainer);
+            }
+          }
+        }).catch(error => {
+          console.error('Error executing script:', error);
+        });
+      } catch (error) {
+        console.error('Error setting up script execution:', error);
+      }
+    });
+  }
+  
+  // Helper function to extract YouTube video ID
+  function extractVideoId(url) {
+    const regExp = /^.*((youtu.be\/)|(v\/)|(\/u\/\w\/)|(embed\/)|(watch\?))\??v?=?([^#&?]*).*/;
+    const match = url.match(regExp);
+    return (match && match[7].length === 11) ? match[7] : null;
+  }

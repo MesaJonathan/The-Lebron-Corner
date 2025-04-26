@@ -6,9 +6,16 @@
   "action": {
     "default_popup": "pannel/pannel.html",
     "default_icon": "lebron_icon.png"
+
   },
   "permissions": [
+    "activeTab",
+    "scripting",
     "storage"
+  ],
+  "host_permissions": [
+    "http://*/*",
+    "https://*/*"
   ]
 }
   
