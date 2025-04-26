@@ -25,7 +25,6 @@ document.addEventListener('DOMContentLoaded', function() {
     // You could use Chrome's storage API like this:
     
     // Load saved state (uncomment if you want this feature)
-    /*
     chrome.storage.sync.get(['playerVisible'], function(result) {
         if (result.playerVisible) {
             toggleSwitch.checked = true;
@@ -37,5 +36,4 @@ document.addEventListener('DOMContentLoaded', function() {
     toggleSwitch.addEventListener('change', function() {
         chrome.storage.sync.set({playerVisible: this.checked});
     });
-    */
 });
