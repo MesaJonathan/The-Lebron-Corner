@@ -53,41 +53,20 @@ const video_urls =[
 
 document.addEventListener('DOMContentLoaded', function() {
     const toggleSwitch = document.getElementById('pip-toggle');
-    const videoUrlInput = document.getElementById('video-url');
-    const saveButton = document.getElementById('save-button');
+    const url = video_urls[Math.floor(Math.random() * video_urls.length)]; ;
     
     // Load saved state
-    chrome.storage.local.get(['pipEnabled', 'videoUrl'], function(result) {
+    chrome.storage.local.get(['pipEnabled'], function(result) {
       toggleSwitch.checked = result.pipEnabled || false;
-      videoUrlInput.value = result.videoUrl || '';
       
       // Apply initial state
-      if (toggleSwitch.checked && videoUrlInput.value) {
-        createOrUpdatePiP(videoUrlInput.value);
-      }
-    });
-  
-    // Save button handler
-    saveButton.addEventListener('click', function() {
-      const url = videoUrlInput.value;
-      const enabled = toggleSwitch.checked;
-      
-      // Save settings
-      chrome.storage.local.set({
-        pipEnabled: enabled,
-        videoUrl: url
-      });
-      
-      if (enabled && url) {
+      if (toggleSwitch.checked) {
         createOrUpdatePiP(url);
-      } else {
-        removePiP();
       }
     });
     
     // Toggle switch handler
     toggleSwitch.addEventListener('change', function() {
-      const url = videoUrlInput.value;
       const enabled = toggleSwitch.checked;
       
       // Save toggle state
@@ -104,10 +83,7 @@ document.addEventListener('DOMContentLoaded', function() {
   });
   
   // Function to create or update PiP player
-  function createOrUpdatePiP() {
-    //start at random video 
-    url = playlistLink[Math.floor(Math.random() * playlistLink.length)]; 
-
+  function createOrUpdatePiP(url) {
     // Extract video ID from YouTube URL
     const videoId = extractVideoId(url);
     if (!videoId) {
