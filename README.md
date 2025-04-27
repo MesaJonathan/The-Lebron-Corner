@@ -11,12 +11,11 @@ The playlist it uses: https://www.youtube.com/playlist?list=PLZ4V_elzG1sd66tVd4T
 - add skip button to pannel
 - style the pannel
 
-- add message to move by dragging the top
-
 - Quality of life things:
     - iframe (and data) persists between tabs
     - toggling on and off re-rolls the video
     - when clicking away from extension, it the toggle switches quickly causing bugs ()
+    - closing the window should toggle it off
 
 - bugs
     - fails on googe search tab (empty url probably?)
