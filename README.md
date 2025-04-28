@@ -12,8 +12,6 @@ The playlist it uses: https://www.youtube.com/playlist?list=PLZ4V_elzG1sd66tVd4T
 - style the pannel
 
 - Quality of life things:
-    - iframe (and data) persists between tabs
-    - toggling on and off re-rolls the video
     - when clicking away from extension, it the toggle switches quickly causing bugs ()
     - closing the window should toggle it off
 
