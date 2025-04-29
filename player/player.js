@@ -53,15 +53,15 @@ const video_urls = [
 
 document.addEventListener("DOMContentLoaded", function () {
   const toggleSwitch = document.getElementById("pip-toggle");
-  const url = video_urls[Math.floor(Math.random() * video_urls.length)];
+  const iframe = document.getElementById("iframe");
 
   // Load saved state
   chrome.storage.sync.get(["pipEnabled"], function (result) {
     toggleSwitch.checked = result.pipEnabled || false;
-
     // Apply initial state
-    if (toggleSwitch.checked) {
-      createOrUpdatePiP(url);
+
+    if (toggleSwitch.checked ) {
+      createOrUpdatePiP();
     }
   });
 
@@ -74,8 +74,8 @@ document.addEventListener("DOMContentLoaded", function () {
       pipEnabled: enabled,
     });
 
-    if (enabled && url) {
-      createOrUpdatePiP(url);
+    if (enabled) {
+      createOrUpdatePiP();
     } else {
       removePiP();
     }
@@ -83,7 +83,9 @@ document.addEventListener("DOMContentLoaded", function () {
 });
 
 // Function to create or update PiP player
-function createOrUpdatePiP(url) {
+function createOrUpdatePiP() {
+  const url = video_urls[Math.floor(Math.random() * video_urls.length)];
+
   // Extract video ID from YouTube URL
   const videoId = extractVideoId(url);
   if (!videoId) {
@@ -102,6 +104,7 @@ function createOrUpdatePiP(url) {
             const existingContainer =
               document.getElementById("yt-pip-container");
             if (existingContainer) {
+              return;
               existingContainer.remove();
             }
 
